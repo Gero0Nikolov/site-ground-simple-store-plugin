@@ -1,0 +1,25 @@
+.price {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between; }
+  .price .normal {
+    display: inline-block;
+    color: #3498db; }
+    .price .normal.disable {
+      color: #888;
+      text-decoration: line-through; }
+  .price .promo {
+    display: inline-block;
+    color: #2ecc71; }
+
+.nowoo-product {
+  display: block;
+  margin: 0 auto;
+  width: 300px;
+  max-width: 90%;
+  background: #eee;
+  padding: 1em;
+  border-radius: 5px; }
+
+/*# sourceMappingURL=front.css.map */

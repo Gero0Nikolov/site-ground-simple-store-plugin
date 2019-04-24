@@ -61,16 +61,18 @@ jQuery( document ).ready( function(){
 			url : ajaxurl,
 			type : "POST",
 			data : {
-				action : "sg_ss_get_products"
+				action : "sg_ss_get_products",
+				mass_promo : JSON.stringify( true )
 			},
 			success : function( response ) {
 				if ( response !== undefined ) {
 					jQuery( "#sg_ss-mass-promo #mass-promo-list #loader" ).remove();
 
 					result_ = JSON.parse( response );
-					if ( result_ != false && result_.length > 0 ) {
-						for ( key in result_ ) {
-							product_ = result_[ key ];
+					console.log( result_ );
+					if ( result_ != false && result_.products.length > 0 ) {
+						for ( key in result_.products ) {
+							product_ = result_.products[ key ];
 
 							view = "\
 							<div id='product-"+ product_.id +"' class='product'>\
@@ -98,7 +100,6 @@ jQuery( document ).ready( function(){
 							jQuery( "#product-"+ product_.id +" .pick" ).on( "click", function( e ){
 								e.preventDefault();
 								product_id = parseInt( jQuery( this ).attr( "product-id" ) );
-								console.log( product_id );
 
 								if ( jQuery( this ).hasClass( "pick" ) ) {
 									picked_items.push( product_id );
@@ -108,6 +109,24 @@ jQuery( document ).ready( function(){
 									jQuery( this ).removeClass( "picked" ).addClass( "pick" ).html( "Pick" );
 								}
 							} );
+
+							// Add picked items if needed
+							if ( typeof( result_.mass_promo_ids ) !== "undefined" && result_.mass_promo_ids.indexOf( product_.id ) > -1 ) {
+								jQuery( "#product-"+ product_.id +" .pick" ).trigger( "click" );
+							}
+						}
+
+						// Set Mass Promo Price
+						if ( typeof( result_.mass_promo_price ) !== "undefined" ) {
+							jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price" ).val( result_.mass_promo_price );
+						}
+
+						if ( typeof( result_.mass_promo_from ) !== "undefined" ) {
+							jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price-from" ).val( result_.mass_promo_from );
+						}
+
+						if ( typeof( result_.mass_promo_to ) !== "undefined" ) {
+							jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price-to" ).val( result_.mass_promo_to );
 						}
 					} else {
 						alert( "You don't have any products..." );
@@ -122,24 +141,38 @@ jQuery( document ).ready( function(){
 		jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #submit-mass-promo" ).on( "click", function( e ){
 			e.preventDefault();
 
-			if ( picked_items.length > 0 ) {
-				jQuery.ajax( {
-					url : ajaxurl,
-					type : "POST",
-					data : {
-						action : "sg_ss_save_mass_promo",
-						picked_items : picked_items
-					},
-					success : function( response ) {
-						console.log( response );
-					},
-					error : function( response ){
-						cosnole.log( response );
+			promo_price = jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price" ).val();
+			from = jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price-from" ).val();
+			to = jQuery( "#sg_ss-mass-promo #mass-promo-list #mass-promo-fields #mass-promo-price-to" ).val();
+
+			jQuery.ajax( {
+				url : ajaxurl,
+				type : "POST",
+				data : {
+					action : "sg_ss_save_mass_promo",
+					picked_items : picked_items,
+					price : promo_price,
+					from : from,
+					to : to
+				},
+				success : function( response ) {
+					console.log( response );
+					if ( response !== undefined ) {
+						result_ = JSON.parse( response );
+						if ( result_ == true ) {
+							alert( "Mass Promo is saved!" );
+							window.location.reload( true );
+						} else {
+							if ( result_ != false ) {
+								alert( result_ );
+							} else { console.log( result_ ); }
+						}
 					}
-				} );
-			} else {
-				alert( "Pick some products first!" );
-			}
+				},
+				error : function( response ){
+					cosnole.log( response );
+				}
+			} );
 		} );
 	}
 } );
